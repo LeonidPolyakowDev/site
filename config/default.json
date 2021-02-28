@@ -1,0 +1,14 @@
+{
+  "port": 5000,
+  "jwtSecret": "leonid test fullstack",
+  "accessToken": {
+    "expiresIn": "15m",
+    "type": "access"
+  },
+  "refreshToken": {
+    "expiresIn": "30m",
+    "type": "refresh"
+  },
+  "mongoUri": "mongodb://localhost:27017/site-test",
+  "baseUrl": "http://localhost:5000"
+}
