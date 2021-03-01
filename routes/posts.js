@@ -31,27 +31,42 @@ router.get('/all', authMiddlware, async (req, resp) => {
     }
 })
 
-router.get('/:id', /*authMiddlware,*/ async (req, resp) => {
+router.get('/:id', authMiddlware, async (req, resp) => {
     try {
-        // const post = await Post.findById(req.params.id);
-        // resp.json(post);
-        const res = await Post.aggregate([
+        const matches = await Post.aggregate([
             {
-                $match: {
-                    _id: mongoose.Types.ObjectId("6037b525bbb2fb0af85c2a95")
+                '$match': {
+                    '_id': mongoose.Types.ObjectId(req.params.id)
                 }
-            },
-            {
-                $lookup: {
-                    "from": "users",
-                    "localField": "author",
-                    "foreignField": "_id",
-                    "as": "user"
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'author',
+                    'foreignField': '_id',
+                    'as': 'userData'
                 }
-            },
-            { "$unwind": "$user" }
+            }, {
+                '$unwind': {
+                    'path': '$userData',
+                    'includeArrayIndex': 'userDataIdx',
+                    'preserveNullAndEmptyArrays': false
+                }
+            }, {
+                '$project': {
+                    '_id': true,
+                    'text': true,
+                    'title': true,
+                    'dateCreated': {
+                        '$dateToString': {
+                            'format': '%Y-%m-%d %H:%M:%S',
+                            'date': '$dateCreated'
+                        }
+                    },
+                    'authorName': '$userData.login'
+                }
+            }
         ]);
-        resp.json(res);
+        resp.json(matches && matches.length && matches[0]);
     } catch (e) {
         resp.status(500).json({message: 'Ошибка сервера'});
     }
